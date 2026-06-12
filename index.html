@@ -24,7 +24,7 @@
         .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: var(--text-muted); font-weight: bold; font-size: 0.9rem; cursor: pointer; text-align: center; border-bottom: 3px solid transparent; }
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
         .container { padding: 15px; max-width: 600px; margin: 0 auto; display: none; flex-direction: column; gap: 15px; }
-        .card { background-color: var(--card-bg); border: 1px solid var(--border); padding: 15px; rounded-radius: 8px; border-radius: 8px; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; }
         .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
         .ranking-item:last-child { border-bottom: none; }
         .pos { width: 30px; font-weight: bold; color: var(--accent); }
@@ -36,7 +36,7 @@
         .badge-status.gana-a { background-color: rgba(59,130,246,0.2); color: var(--primary); }
         .badge-status.gana-b { background-color: rgba(245,158,11,0.2); color: var(--accent); }
         .badge-status.empate { background-color: rgba(148,163,184,0.2); color: var(--text-main); }
-        select { w-full: 100%; width: 100%; padding: 10px; background-color: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; margin-bottom: 10px; outline: none; }
+        select { width: 100%; padding: 10px; background-color: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; margin-bottom: 10px; outline: none; }
         .votos-box { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .votos-col { background-color: rgba(0,0,0,0.15); padding: 10px; border-radius: 6px; border-left: 4px solid var(--border); }
         .votos-col.col-a { border-left-color: var(--primary); }
@@ -68,13 +68,11 @@
 </div>
 
 <div id="sec-posiciones" class="container" style="display: flex;">
-    <div class="card" id="listaRanking">
-        </div>
+    <div class="card" id="listaRanking"></div>
 </div>
 
 <div id="sec-partidos" class="container">
-    <div class="card" id="listaPartidos">
-        </div>
+    <div class="card" id="listaPartidos"></div>
 </div>
 
 <div id="sec-cruces" class="container">
@@ -100,8 +98,8 @@
 </div>
 
 <script>
-    // URL DE TU GOOGLE APPS SCRIPT (Asegúrate de cambiarla si generas una nueva implementación)
-    const WEB_APP_URL = "const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyN1g4ZdMVJ_VvizdkVwJgso8o2gHx0itxypbrGYyZxdLUkZ98jzgCSOa8p5tOdIGEw/exec";
+    // URL DE TU GOOGLE APPS SCRIPT (Corregida e integrada)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyN1g4ZdMVJ_VvizdkVwJgso8o2gHx0itxypbrGYyZxdLUkZ98jzgCSOa8p5tOdIGEw/exec";
     
     let datosGlobales = { ranking: [], partidos: [], predicciones: [] };
 
@@ -122,12 +120,10 @@
             document.getElementById('statusBar').style.color = "var(--accent)";
         } catch (error) {
             console.error("Error cargando base de datos:", error);
-            // Si falla, ocultamos la carga para dejar usar la interfaz de pestañas de respaldo
             document.getElementById('loading').style.display = 'none';
             document.getElementById('statusBar').innerText = "Modo desconectado - Revisa conexión";
             document.getElementById('statusBar').style.color = "var(--danger)";
             
-            // Renderizar vacíos de cortesía para que la estructura no muera
             renderizarRanking([]);
             renderizarPartidos([]);
         }
