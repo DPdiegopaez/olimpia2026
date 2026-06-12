@@ -138,11 +138,13 @@
             const item = document.createElement('div');
             item.className = 'ranking-item';
             
+            // Lógica: Solo corona para el primer lugar (index 0)
             let figuraPodio = '';
-            if (index === 0) figuraPodio = '👑';       
-            else if (index === 1) figuraPodio = '🥈';  
-            else if (index === 2) figuraPodio = '🥉';  
-            else figuraPodio = '&nbsp;&nbsp;&nbsp;';   
+            if (index === 0) {
+                figuraPodio = '👑'; // Únicamente el líder lleva corona
+            } else {
+                figuraPodio = '&nbsp;&nbsp;&nbsp;'; // Del 2do hacia abajo queda el espacio limpio
+            }
 
             item.innerHTML = `
                 <span class="pos">${figuraPodio}</span>
@@ -165,14 +167,12 @@
             const tarjeta = document.createElement('div');
             tarjeta.className = 'card-partido';
             
-            // LIMPIEZA SEGURA DE FECHA: Convierte formatos largos de huso horario a texto limpio
             let fechaLimpia = p.fecha;
             if (fechaLimpia && (fechaLimpia.includes("GMT") || fechaLimpia.includes("00:00:00"))) {
                 try {
                     const parsedDate = new Date(p.fecha);
                     if (!isNaN(parsedDate.getTime())) {
                         const opciones = { day: 'numeric', month: 'short' };
-                        // Convierte a "11 de jun" o "12 de jun" de forma automática
                         fechaLimpia = parsedDate.toLocaleDateString('es-ES', opciones).replace('.', '');
                     }
                 } catch(e) {
@@ -205,7 +205,7 @@
         });
     }
 
-    function configureSelectorPartidos(partidos) { // Mantenemos compatibilidad de invocación interna
+    function configureSelectorPartidos(partidos) {
         configurarSelectorPartidos(partidos);
     }
 
