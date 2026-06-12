@@ -128,7 +128,7 @@
         }
     }
 
-    // FUNCIÓN DE RANKING: 1er lugar Corona, del 2do en adelante escala numérica (#2, #3...)
+    // FUNCIÓN DE RANKING MODIFICADA: Solo el número limpio sin el símbolo #
     function renderizarRanking(ranking) {
         const contenedor = document.getElementById('listaRanking');
         contenedor.innerHTML = '';
@@ -144,10 +144,10 @@
             let claseExtra = '';
             
             if (index === 0) {
-                contenidoPosicion = '👑'; // Líder exclusivo
+                contenidoPosicion = '👑'; // Líder exclusivo con corona
                 claseExtra = 'pos-crown';
             } else {
-                contenidoPosicion = `#${index + 1}`; // Escala del #2 hacia abajo
+                contenidoPosicion = index + 1; // Número exacto y limpio (2, 3, 4...)
             }
 
             item.innerHTML = `
