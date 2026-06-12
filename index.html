@@ -167,11 +167,25 @@
             const tarjeta = document.createElement('div');
             tarjeta.className = 'card-partido';
             
+            // LIMPIEZA DE FECHA: Si viene con el texto de la hora de Google, la recortamos
+            let fechaLimpia = p.fecha;
+            if (fechaLimpia && fechaLimpia.includes("00:00:00")) {
+                // Si viene como "Thu Jun 11 2026 00:00:00...", extraemos solo el día y el mes
+                const partes = fechaLimpia.split(' ');
+                if (partes.length >= 3) {
+                    // Esto convierte "Thu Jun 11 2026..." en "11 de Jun"
+                    const mesesEspañol = { 'Jan': 'Ene', 'Feb': 'Feb', 'Mar': 'Mar', 'Apr': 'Abr', 'May': 'May', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago', 'Sep': 'Sep', 'Oct': 'Oct', 'Nov': 'Nov', 'Dec': 'Dic' };
+                    let mes = mesesEspañol[partes[1]] || partes[1];
+                    let dia = partes[2];
+                    fechaLimpia = `${dia} de ${mes}`;
+                }
+            }
+            
             let infoProgramacion = '';
-            if (p.fecha || p.hora) {
+            if (fechaLimpia || p.hora) {
                 infoProgramacion = `
                     <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; display: flex; gap: 10px; justify-content: center;">
-                        <span>📅 ${p.fecha}</span>
+                        <span>📅 ${fechaLimpia}</span>
                         <span>🕒 ${p.hora}</span>
                     </div>
                 `;
@@ -191,7 +205,6 @@
             contenedor.appendChild(tarjeta);
         });
     }
-
     function configurarSelectorPartidos(partidos) {
         const selector = document.getElementById('selectorPartidos');
         selector.innerHTML = '';
