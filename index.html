@@ -27,7 +27,8 @@
         .card { background-color: var(--card-bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; }
         .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
         .ranking-item:last-child { border-bottom: none; }
-        .pos { width: 35px; font-size: 1.2rem; text-align: center; display: inline-block; }
+        .pos { width: 35px; font-size: 1rem; font-weight: bold; color: var(--text-muted); text-align: center; display: inline-block; }
+        .pos-crown { font-size: 1.2rem; }
         .name { flex: 1; margin-left: 5px; }
         .pts { font-weight: bold; color: var(--primary); }
         .trend { margin-left: 10px; font-size: 0.8rem; }
@@ -127,6 +128,7 @@
         }
     }
 
+    // FUNCIÓN DE RANKING: 1er lugar Corona, del 2do en adelante escala numérica (#2, #3...)
     function renderizarRanking(ranking) {
         const contenedor = document.getElementById('listaRanking');
         contenedor.innerHTML = '';
@@ -138,16 +140,18 @@
             const item = document.createElement('div');
             item.className = 'ranking-item';
             
-            // Lógica: Solo corona para el primer lugar (index 0)
-            let figuraPodio = '';
+            let contenidoPosicion = '';
+            let claseExtra = '';
+            
             if (index === 0) {
-                figuraPodio = '👑'; // Únicamente el líder lleva corona
+                contenidoPosicion = '👑'; // Líder exclusivo
+                claseExtra = 'pos-crown';
             } else {
-                figuraPodio = '&nbsp;&nbsp;&nbsp;'; // Del 2do hacia abajo queda el espacio limpio
+                contenidoPosicion = `#${index + 1}`; // Escala del #2 hacia abajo
             }
 
             item.innerHTML = `
-                <span class="pos">${figuraPodio}</span>
+                <span class="pos ${claseExtra}">${contenidoPosicion}</span>
                 <span class="name">${r.nombre}</span>
                 <span class="pts">${r.puntos} pts</span>
                 <span class="trend">${r.tendencia || '↔️'}</span>
