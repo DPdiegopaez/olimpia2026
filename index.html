@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olimpia Mundial 2026</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #3b82f6;
+            --accent: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); padding-bottom: 60px; }
+        header { background-color: var(--card-bg); padding: 15px; text-align: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        h1 { font-size: 1.4rem; color: var(--text-main); margin-bottom: 5px; }
+        .status-bar { font-size: 0.8rem; color: var(--accent); }
+        .tabs { display: flex; background-color: var(--card-bg); border-bottom: 1px solid var(--border); position: sticky; top: 69px; z-index: 99; }
+        .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: var(--text-muted); font-weight: bold; font-size: 0.9rem; cursor: pointer; text-align: center; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; display: none; flex-direction: column; gap: 15px; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border); padding: 15px; rounded-radius: 8px; border-radius: 8px; }
+        .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .ranking-item:last-child { border-bottom: none; }
+        .pos { width: 30px; font-weight: bold; color: var(--accent); }
+        .name { flex: 1; margin-left: 10px; }
+        .pts { font-weight: bold; color: var(--primary); }
+        .trend { margin-left: 10px; font-size: 0.8rem; }
+        .card-partido { text-align: center; padding: 12px; background-color: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 10px; }
+        .badge-status { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; background-color: var(--border); color: var(--text-muted); margin-top: 5px; }
+        .badge-status.gana-a { background-color: rgba(59,130,246,0.2); color: var(--primary); }
+        .badge-status.gana-b { background-color: rgba(245,158,11,0.2); color: var(--accent); }
+        .badge-status.empate { background-color: rgba(148,163,184,0.2); color: var(--text-main); }
+        select { w-full: 100%; width: 100%; padding: 10px; background-color: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; margin-bottom: 10px; outline: none; }
+        .votos-box { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .votos-col { background-color: rgba(0,0,0,0.15); padding: 10px; border-radius: 6px; border-left: 4px solid var(--border); }
+        .votos-col.col-a { border-left-color: var(--primary); }
+        .votos-col.col-empate { border-left-color: var(--text-muted); }
+        .votos-col.col-b { border-left-color: var(--accent); }
+        .votos-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; color: var(--text-muted); }
+        .votos-lista { font-size: 0.9rem; line-height: 1.4; color: var(--text-main); }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="loading">
+    <div class="spinner"></div>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Sincronizando fixture Olimpia...</p>
+</div>
+
+<header>
+    <h1>🏆 Olimpia Mundial 2026</h1>
+    <div class="status-bar" id="statusBar">Conectando con Google Sheets...</div>
+</header>
+
+<div class="tabs">
+    <button class="tab-btn active" onclick="cambiarPestaña('posiciones')">Posiciones</button>
+    <button class="tab-btn" onclick="cambiarPestaña('partidos')">Resultados</button>
+    <button class="tab-btn" onclick="cambiarPestaña('cruces')">¿Quién va con quién?</button>
+</div>
+
+<div id="sec-posiciones" class="container" style="display: flex;">
+    <div class="card" id="listaRanking">
+        </div>
+</div>
+
+<div id="sec-partidos" class="container">
+    <div class="card" id="listaPartidos">
+        </div>
+</div>
+
+<div id="sec-cruces" class="container">
+    <div class="card">
+        <label style="font-size: 0.85rem; color: var(--text-muted); display:block; margin-bottom:5px;">Selecciona un Partido:</label>
+        <select id="selectorPartidos" onchange="actualizarVotosPorPartido()"></select>
+        
+        <div class="votos-box">
+            <div class="votos-col col-a">
+                <div class="votos-title" id="titulo-gana-a">Votan Gana Local:</div>
+                <div class="votos-lista" id="lista-gana-a">Cargando participantes...</div>
+            </div>
+            <div class="votos-col col-empate">
+                <div class="votos-title">Votan Empate:</div>
+                <div class="votos-lista" id="lista-empate">Cargando participantes...</div>
+            </div>
+            <div class="votos-col col-b">
+                <div class="votos-title" id="titulo-gana-b">Votan Gana Visitante:</div>
+                <div class="votos-lista" id="lista-gana-b">Cargando participantes...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // URL DE TU GOOGLE APPS SCRIPT (Asegúrate de cambiarla si generas una nueva implementación)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzHvfxzzu0jo-itgf2-zud5kvl_T81hc7KI-Y3qsSLNFmzWPK6-WoU2Nga6Gd3E0mY/exec";
+    
+    let datosGlobales = { ranking: [], partidos: [], predicciones: [] };
+
+    async function cargarDatos() {
+        try {
+            const response = await fetch(WEB_APP_URL);
+            datosGlobales = await response.json();
+            
+            // Ocultamos la pantalla de carga inmediatamente al recibir datos
+            document.getElementById('loading').style.display = 'none';
+            
+            renderizarRanking(datosGlobales.ranking);
+            renderizarPartidos(datosGlobales.partidos);
+            configurarSelectorPartidos(datosGlobales.partidos);
+            
+            const ahora = new Date();
+            document.getElementById('statusBar').innerText = `Actualizado: ${ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            document.getElementById('statusBar').style.color = "var(--accent)";
+        } catch (error) {
+            console.error("Error cargando base de datos:", error);
+            // Si falla, ocultamos la carga para dejar usar la interfaz de pestañas de respaldo
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('statusBar').innerText = "Modo desconectado - Revisa conexión";
+            document.getElementById('statusBar').style.color = "var(--danger)";
+            
+            // Renderizar vacíos de cortesía para que la estructura no muera
+            renderizarRanking([]);
+            renderizarPartidos([]);
+        }
+    }
+
+    function renderizarRanking(ranking) {
+        const contenedor = document.getElementById('listaRanking');
+        contenedor.innerHTML = '';
+        if (ranking.length === 0) {
+            contenedor.innerHTML = '<p style="text-align:center; color:var(--text-muted);">No hay participantes registrados aún.</p>';
+            return;
+        }
+        ranking.forEach((r, index) => {
+            const item = document.createElement('div');
+            item.className = 'ranking-item';
+            item.innerHTML = `
+                <span class="pos">#${index + 1}</span>
+                <span class="name">${r.nombre}</span>
+                <span class="pts">${r.puntos} pts</span>
+                <span class="trend">${r.tendencia || '↔️'}</span>
+            `;
+            contenedor.appendChild(item);
+        });
+    }
+
+    function renderizarPartidos(partidos) {
+        const contenedor = document.getElementById('listaPartidos');
+        contenedor.innerHTML = '';
+        if (partidos.length === 0) {
+            contenedor.innerHTML = '<p style="text-align:center; color:var(--text-muted);">No se encontraron partidos programados.</p>';
+            return;
+        }
+        partidos.forEach(p => {
+            const tarjeta = document.createElement('div');
+            tarjeta.className = 'card-partido';
+            
+            let infoProgramacion = '';
+            if (p.fecha || p.hora) {
+                infoProgramacion = `
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; display: flex; gap: 10px; justify-content: center;">
+                        <span>📅 ${p.fecha}</span>
+                        <span>🕒 ${p.hora}</span>
+                    </div>
+                `;
+            }
+
+            let claseBadge = '';
+            let textoResultado = p.resultado;
+            if(p.resultado.toUpperCase().includes("GANA A") || p.resultado.toUpperCase() === "LOCAL") { claseBadge = 'gana-a'; textoResultado = '✓ Ganó Local'; }
+            else if(p.resultado.toUpperCase().includes("GANA B") || p.resultado.toUpperCase() === "VISITANTE") { claseBadge = 'gana-b'; textoResultado = '✓ Ganó Visitante'; }
+            else if(p.resultado.toUpperCase().includes("EMPATE")) { claseBadge = 'empate'; textoResultado = '✓ Empate'; }
+
+            tarjeta.innerHTML = `
+                <div style="font-weight: bold; font-size: 1.05rem;">${p.partido}</div>
+                ${infoProgramacion}
+                <div><span class="badge-status ${claseBadge}">${textoResultado}</span></div>
+            `;
+            contenedor.appendChild(tarjeta);
+        });
+    }
+
+    function configurarSelectorPartidos(partidos) {
+        const selector = document.getElementById('selectorPartidos');
+        selector.innerHTML = '';
+        partidos.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.partido;
+            selector.appendChild(opt);
+        });
+        actualizarVotosPorPartido();
+    }
+
+    function actualizarVotosPorPartido() {
+        const idPartidoSeleccionado = document.getElementById('selectorPartidos').value;
+        if (!idPartidoSeleccionado) return;
+
+        const partidoSeleccionado = datosGlobales.partidos.find(p => p.id === idPartidoSeleccionado);
+        
+        let nombreLocal = "Local";
+        let nombreVisitante = "Visitante";
+        if (partidoSeleccionado && partidoSeleccionado.partido.toUpperCase().includes("VS")) {
+            const partes = partidoSeleccionado.partido.split(/VS/i);
+            nombreLocal = partes[0].trim();
+            nombreVisitante = partes[1].trim();
+        }
+
+        document.getElementById('titulo-gana-a').innerText = `Votan Gana ${nombreLocal}:`;
+        document.getElementById('titulo-gana-b').innerText = `Votan Gana ${nombreVisitante}:`;
+
+        let ganaA = [];
+        let empate = [];
+        let ganaB = [];
+
+        datosGlobales.predicciones.forEach(p => {
+            let voto = p.elecciones[idPartidoSeleccionado];
+            if (voto) {
+                let votoLimpio = voto.toUpperCase().trim();
+                let eqALimpio = nombreLocal.toUpperCase();
+                let eqBLimpio = nombreVisitante.toUpperCase();
+
+                if (votoLimpio.includes("GANA A") || votoLimpio === "LOCAL" || (eqALimpio && votoLimpio.includes(eqALimpio))) {
+                    ganaA.push(p.nombre);
+                } else if (votoLimpio.includes("EMPATE")) {
+                    empate.push(p.nombre);
+                } else if (votoLimpio.includes("GANA B") || votoLimpio === "VISITANTE" || (eqBLimpio && votoLimpio.includes(eqBLimpio))) {
+                    ganaB.push(p.nombre);
+                }
+            }
+        });
+
+        document.getElementById('lista-gana-a').innerHTML = ganaA.length > 0 ? ganaA.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
+        document.getElementById('lista-empate').innerHTML = empate.length > 0 ? empate.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
+        document.getElementById('lista-gana-b').innerHTML = ganaB.length > 0 ? ganaB.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
+    }
+
+    function cambiarPestaña(pestaña) {  
+        const btns = document.querySelectorAll('.tab-btn'); 
+        const secPosiciones = document.getElementById('sec-posiciones'); 
+        const secPartidos = document.getElementById('sec-partidos'); 
+        const secCruces = document.getElementById('sec-cruces'); 
+
+        btns.forEach(b => b.classList.remove('active')); 
+        if(secPosiciones) secPosiciones.style.display = 'none';  
+        if(secPartidos) secPartidos.style.display = 'none';  
+        if(secCruces) secCruces.style.display = 'none';  
+
+        if (pestaña === 'posiciones' && secPosiciones) {   
+            btns[0].classList.add('active');
+            secPosiciones.style.display = 'flex';  
+        } else if (pestaña === 'partidos' && secPartidos) {     
+            btns[1].classList.add('active');
+            secPartidos.style.display = 'flex';  
+        } else if (secCruces) {  
+            btns[2].classList.add('active');
+            secCruces.style.display = 'flex';  
+        }
+    }
+
+    cargarDatos();
+</script>
+</body>
+</html>
