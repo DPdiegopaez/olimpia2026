@@ -127,7 +127,6 @@
         }
     }
 
-    // FUNCIÓN DEL RANKING CORREGIDA (CON CORONAS Y SIN NUMERALES)
     function renderizarRanking(ranking) {
         const contenedor = document.getElementById('listaRanking');
         contenedor.innerHTML = '';
@@ -139,12 +138,11 @@
             const item = document.createElement('div');
             item.className = 'ranking-item';
             
-            // Lógica inteligente para las figuras del podio
             let figuraPodio = '';
-            if (index === 0) figuraPodio = '👑';       // 1er Lugar: Corona de oro
-            else if (index === 1) figuraPodio = '🥈';  // 2do Lugar: Corona/Medalla de plata
-            else if (index === 2) figuraPodio = '🥉';  // 3er Lugar: Corona/Medalla de bronce
-            else figuraPodio = '&nbsp;&nbsp;&nbsp;';   // 4to hacia abajo: Espacio limpio y alineado
+            if (index === 0) figuraPodio = '👑';       
+            else if (index === 1) figuraPodio = '🥈';  
+            else if (index === 2) figuraPodio = '🥉';  
+            else figuraPodio = '&nbsp;&nbsp;&nbsp;';   
 
             item.innerHTML = `
                 <span class="pos">${figuraPodio}</span>
@@ -167,17 +165,18 @@
             const tarjeta = document.createElement('div');
             tarjeta.className = 'card-partido';
             
-            // LIMPIEZA DE FECHA: Si viene con el texto de la hora de Google, la recortamos
+            // LIMPIEZA SEGURA DE FECHA: Convierte formatos largos de huso horario a texto limpio
             let fechaLimpia = p.fecha;
-            if (fechaLimpia && fechaLimpia.includes("00:00:00")) {
-                // Si viene como "Thu Jun 11 2026 00:00:00...", extraemos solo el día y el mes
-                const partes = fechaLimpia.split(' ');
-                if (partes.length >= 3) {
-                    // Esto convierte "Thu Jun 11 2026..." en "11 de Jun"
-                    const mesesEspañol = { 'Jan': 'Ene', 'Feb': 'Feb', 'Mar': 'Mar', 'Apr': 'Abr', 'May': 'May', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago', 'Sep': 'Sep', 'Oct': 'Oct', 'Nov': 'Nov', 'Dec': 'Dic' };
-                    let mes = mesesEspañol[partes[1]] || partes[1];
-                    let dia = partes[2];
-                    fechaLimpia = `${dia} de ${mes}`;
+            if (fechaLimpia && (fechaLimpia.includes("GMT") || fechaLimpia.includes("00:00:00"))) {
+                try {
+                    const parsedDate = new Date(p.fecha);
+                    if (!isNaN(parsedDate.getTime())) {
+                        const opciones = { day: 'numeric', month: 'short' };
+                        // Convierte a "11 de jun" o "12 de jun" de forma automática
+                        fechaLimpia = parsedDate.toLocaleDateString('es-ES', opciones).replace('.', '');
+                    }
+                } catch(e) {
+                    console.error("Error parseando fecha:", e);
                 }
             }
             
@@ -205,6 +204,11 @@
             contenedor.appendChild(tarjeta);
         });
     }
+
+    function configureSelectorPartidos(partidos) { // Mantenemos compatibilidad de invocación interna
+        configurarSelectorPartidos(partidos);
+    }
+
     function configurarSelectorPartidos(partidos) {
         const selector = document.getElementById('selectorPartidos');
         selector.innerHTML = '';
