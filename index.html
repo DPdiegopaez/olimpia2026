@@ -27,8 +27,8 @@
         .card { background-color: var(--card-bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; }
         .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
         .ranking-item:last-child { border-bottom: none; }
-        .pos { width: 30px; font-weight: bold; color: var(--accent); }
-        .name { flex: 1; margin-left: 10px; }
+        .pos { width: 35px; font-size: 1.2rem; text-align: center; display: inline-block; }
+        .name { flex: 1; margin-left: 5px; }
         .pts { font-weight: bold; color: var(--primary); }
         .trend { margin-left: 10px; font-size: 0.8rem; }
         .card-partido { text-align: center; padding: 12px; background-color: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 10px; }
@@ -98,7 +98,6 @@
 </div>
 
 <script>
-    // URL DE TU GOOGLE APPS SCRIPT (Corregida e integrada)
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyN1g4ZdMVJ_VvizdkVwJgso8o2gHx0itxypbrGYyZxdLUkZ98jzgCSOa8p5tOdIGEw/exec";
     
     let datosGlobales = { ranking: [], partidos: [], predicciones: [] };
@@ -108,7 +107,6 @@
             const response = await fetch(WEB_APP_URL);
             datosGlobales = await response.json();
             
-            // Ocultamos la pantalla de carga inmediatamente al recibir datos
             document.getElementById('loading').style.display = 'none';
             
             renderizarRanking(datosGlobales.ranking);
@@ -129,6 +127,7 @@
         }
     }
 
+    // FUNCIÓN DEL RANKING CORREGIDA (CON CORONAS Y SIN NUMERALES)
     function renderizarRanking(ranking) {
         const contenedor = document.getElementById('listaRanking');
         contenedor.innerHTML = '';
@@ -139,8 +138,16 @@
         ranking.forEach((r, index) => {
             const item = document.createElement('div');
             item.className = 'ranking-item';
+            
+            // Lógica inteligente para las figuras del podio
+            let figuraPodio = '';
+            if (index === 0) figuraPodio = '👑';       // 1er Lugar: Corona de oro
+            else if (index === 1) figuraPodio = '🥈';  // 2do Lugar: Corona/Medalla de plata
+            else if (index === 2) figuraPodio = '🥉';  // 3er Lugar: Corona/Medalla de bronce
+            else figuraPodio = '&nbsp;&nbsp;&nbsp;';   // 4to hacia abajo: Espacio limpio y alineado
+
             item.innerHTML = `
-                <span class="pos">#${index + 1}</span>
+                <span class="pos">${figuraPodio}</span>
                 <span class="name">${r.nombre}</span>
                 <span class="pts">${r.puntos} pts</span>
                 <span class="trend">${r.tendencia || '↔️'}</span>
