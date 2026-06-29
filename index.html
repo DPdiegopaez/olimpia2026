@@ -86,8 +86,9 @@
                 <div class="votos-title" id="titulo-gana-a">Votan Gana Local:</div>
                 <div class="votos-lista" id="lista-gana-a">Cargando participantes...</div>
             </div>
+            <!-- SECCIÓN AJUSTADA: De Empate a Penaltis -->
             <div class="votos-col col-empate">
-                <div class="votos-title">Votan Empate:</div>
+                <div class="votos-title">Votan Penaltis:</div>
                 <div class="votos-lista" id="lista-empate">Cargando participantes...</div>
             </div>
             <div class="votos-col col-b">
@@ -128,7 +129,6 @@
         }
     }
 
-    // FUNCIÓN DE RANKING MODIFICADA: Solo el número limpio sin el símbolo #
     function renderizarRanking(ranking) {
         const contenedor = document.getElementById('listaRanking');
         contenedor.innerHTML = '';
@@ -144,10 +144,10 @@
             let claseExtra = '';
             
             if (index === 0) {
-                contenidoPosicion = '👑'; // Líder exclusivo con corona
+                contenidoPosicion = '👑'; 
                 claseExtra = 'pos-crown';
             } else {
-                contenidoPosicion = index + 1; // Número exacto y limpio (2, 3, 4...)
+                contenidoPosicion = index + 1; 
             }
 
             item.innerHTML = `
@@ -196,9 +196,10 @@
 
             let claseBadge = '';
             let textoResultado = p.resultado;
+            // Soporte visual para mostrar si un partido real terminó definido por penales
             if(p.resultado.toUpperCase().includes("GANA A") || p.resultado.toUpperCase() === "LOCAL") { claseBadge = 'gana-a'; textoResultado = '✓ Ganó Local'; }
             else if(p.resultado.toUpperCase().includes("GANA B") || p.resultado.toUpperCase() === "VISITANTE") { claseBadge = 'gana-b'; textoResultado = '✓ Ganó Visitante'; }
-            else if(p.resultado.toUpperCase().includes("EMPATE")) { claseBadge = 'empate'; textoResultado = '✓ Empate'; }
+            else if(p.resultado.toUpperCase().includes("EMPATE") || p.resultado.toUpperCase().includes("PENAL")) { claseBadge = 'empate'; textoResultado = '✓ Penaltis'; }
 
             tarjeta.innerHTML = `
                 <div style="font-weight: bold; font-size: 1.05rem;">${p.partido}</div>
@@ -243,7 +244,7 @@
         document.getElementById('titulo-gana-b').innerText = `Votan Gana ${nombreVisitante}:`;
 
         let ganaA = [];
-        let empate = [];
+        let penaltis = [];
         let ganaB = [];
 
         datosGlobales.predicciones.forEach(p => {
@@ -255,8 +256,8 @@
 
                 if (votoLimpio.includes("GANA A") || votoLimpio === "LOCAL" || (eqALimpio && votoLimpio.includes(eqALimpio))) {
                     ganaA.push(p.nombre);
-                } else if (votoLimpio.includes("EMPATE")) {
-                    empate.push(p.nombre);
+                } else if (votoLimpio.includes("EMPATE") || votoLimpio.includes("PENAL")) {
+                    penaltis.push(p.nombre); // Agrupa si en tu Excel dice "Empate" o "Penaltis"
                 } else if (votoLimpio.includes("GANA B") || votoLimpio === "VISITANTE" || (eqBLimpio && votoLimpio.includes(eqBLimpio))) {
                     ganaB.push(p.nombre);
                 }
@@ -264,7 +265,7 @@
         });
 
         document.getElementById('lista-gana-a').innerHTML = ganaA.length > 0 ? ganaA.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
-        document.getElementById('lista-empate').innerHTML = empate.length > 0 ? empate.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
+        document.getElementById('lista-empate').innerHTML = penaltis.length > 0 ? penaltis.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
         document.getElementById('lista-gana-b').innerHTML = ganaB.length > 0 ? ganaB.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
     }
 
