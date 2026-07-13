@@ -129,6 +129,7 @@
         }
     }
 
+    // FUNCIÓN DE RANKING REFORMADA: Podio completo (👑, 🥈, 🥉) y números limpios desde el 4
     function renderizarRanking(ranking) {
         const contenedor = document.getElementById('listaRanking');
         contenedor.innerHTML = '';
@@ -146,8 +147,14 @@
             if (index === 0) {
                 contenidoPosicion = '👑'; 
                 claseExtra = 'pos-crown';
+            } else if (index === 1) {
+                contenidoPosicion = '🥈'; 
+                claseExtra = 'pos-crown';
+            } else if (index === 2) {
+                contenidoPosicion = '🥉'; 
+                claseExtra = 'pos-crown';
             } else {
-                contenidoPosicion = index + 1; 
+                contenidoPosicion = index + 1; // Número exacto sin numeral (#) para el resto
             }
 
             item.innerHTML = `
@@ -196,7 +203,6 @@
 
             let claseBadge = '';
             let textoResultado = p.resultado;
-            // Soporte visual para mostrar si un partido real terminó definido por penales
             if(p.resultado.toUpperCase().includes("GANA A") || p.resultado.toUpperCase() === "LOCAL") { claseBadge = 'gana-a'; textoResultado = '✓ Ganó Local'; }
             else if(p.resultado.toUpperCase().includes("GANA B") || p.resultado.toUpperCase() === "VISITANTE") { claseBadge = 'gana-b'; textoResultado = '✓ Ganó Visitante'; }
             else if(p.resultado.toUpperCase().includes("EMPATE") || p.resultado.toUpperCase().includes("PENAL")) { claseBadge = 'empate'; textoResultado = '✓ Penaltis'; }
@@ -257,7 +263,7 @@
                 if (votoLimpio.includes("GANA A") || votoLimpio === "LOCAL" || (eqALimpio && votoLimpio.includes(eqALimpio))) {
                     ganaA.push(p.nombre);
                 } else if (votoLimpio.includes("EMPATE") || votoLimpio.includes("PENAL")) {
-                    penaltis.push(p.nombre); // Agrupa si en tu Excel dice "Empate" o "Penaltis"
+                    penaltis.push(p.nombre); 
                 } else if (votoLimpio.includes("GANA B") || votoLimpio === "VISITANTE" || (eqBLimpio && votoLimpio.includes(eqBLimpio))) {
                     ganaB.push(p.nombre);
                 }
