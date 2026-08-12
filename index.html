@@ -14,6 +14,7 @@
             --text-muted: #94a3b8;
             --border: #334155;
             --danger: #ef4444;
+            --gold: #fbbf24; /* Color dorado para premiación 4° y 5° */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); padding-bottom: 60px; }
@@ -29,6 +30,7 @@
         .ranking-item:last-child { border-bottom: none; }
         .pos { width: 35px; font-size: 1rem; font-weight: bold; color: var(--text-muted); text-align: center; display: inline-block; }
         .pos-crown { font-size: 1.2rem; }
+        .pos-gold { color: var(--gold); font-size: 1.1rem; text-shadow: 0 0 5px rgba(251, 191, 36, 0.3); } /* Estilo dorado para 4° y 5° */
         .name { flex: 1; margin-left: 5px; }
         .pts { font-weight: bold; color: var(--primary); }
         .trend { margin-left: 10px; font-size: 0.8rem; }
@@ -46,7 +48,6 @@
         .votos-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; color: var(--text-muted); }
         .votos-lista { font-size: 0.9rem; line-height: 1.4; color: var(--text-main); }
         
-        /* ESTILOS PARA LA SECCIÓN DE MARCADORES EXACTOS */
         .marcardores-seccion { margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 15px; }
         .marcador-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
         .marcador-badge { background: var(--primary); color: white; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 0.9rem; min-width: 48px; text-align: center; }
@@ -92,7 +93,6 @@
                 <div class="votos-title" id="titulo-gana-a">Votan Gana Local:</div>
                 <div class="votos-lista" id="lista-gana-a">Cargando participantes...</div>
             </div>
-            <!-- SECCIÓN RESTAURADA: Votan Empate -->
             <div class="votos-col col-empate">
                 <div class="votos-title">Votan Empate:</div>
                 <div class="votos-lista" id="lista-empate">Cargando participantes...</div>
@@ -103,7 +103,6 @@
             </div>
         </div>
 
-        <!-- SECCIÓN DE MARCADORES EXACTOS EN ¿QUIÉN VA CON QUIÉN? -->
         <div class="marcardores-seccion">
             <h4 style="font-size: 0.9rem; color: var(--accent); margin-bottom: 10px;">🎯 Pronósticos de Marcador Exacto:</h4>
             <div id="contenedorMarcadores">Cargando marcadores...</div>
@@ -141,7 +140,7 @@
         }
     }
 
-    // RANKING CON PODIO (👑, 🥈, 🥉) Y NÚMEROS LIMPIOS DESDE EL PUESTO 4
+    // RANKING ACTUALIZADO: Podio (👑, 🥈, 🥉), 4° y 5° en DORADO GANADOR, 6°+ en normal
     function renderizarRanking(ranking) {
         const contenedor = document.getElementById('listaRanking');
         contenedor.innerHTML = '';
@@ -165,8 +164,11 @@
             } else if (index === 2) {
                 contenidoPosicion = '🥉'; 
                 claseExtra = 'pos-crown';
+            } else if (index === 3 || index === 4) {
+                contenidoPosicion = index + 1; // 4 y 5
+                claseExtra = 'pos-gold';       // Color dorado brillante para premiación
             } else {
-                contenidoPosicion = index + 1; 
+                contenidoPosicion = index + 1; // 6° en adelante
             }
 
             item.innerHTML = `
@@ -266,11 +268,9 @@
         let empate = [];
         let ganaB = [];
         
-        // Agrupar marcadores exactos {"2-1": ["Diego", "Alex"], "1-1": ["Carlos"]}
         let mapaMarcadores = {};
 
         datosGlobales.predicciones.forEach(p => {
-            // 1. Clasificación general de ganadores
             let voto = p.elecciones[idPartidoSeleccionado];
             if (voto) {
                 let votoLimpio = voto.toUpperCase().trim();
@@ -286,7 +286,6 @@
                 }
             }
 
-            // 2. Clasificación de marcadores exactos (Columna ID_MARCADOR)
             let idMarcador = idPartidoSeleccionado + "_MARCADOR";
             let marcadorVotado = p.elecciones[idMarcador];
             if (marcadorVotado && marcadorVotado !== "Sin voto") {
@@ -298,12 +297,10 @@
             }
         });
 
-        // Imprimir ganadores
         document.getElementById('lista-gana-a').innerHTML = ganaA.length > 0 ? ganaA.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
         document.getElementById('lista-empate').innerHTML = empate.length > 0 ? empate.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
         document.getElementById('lista-gana-b').innerHTML = ganaB.length > 0 ? ganaB.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
 
-        // Imprimir tarjetas de marcadores exactos
         const contenedorM = document.getElementById('contenedorMarcadores');
         contenedorM.innerHTML = '';
         
