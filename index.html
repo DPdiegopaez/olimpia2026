@@ -45,6 +45,12 @@
         .votos-col.col-b { border-left-color: var(--accent); }
         .votos-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; color: var(--text-muted); }
         .votos-lista { font-size: 0.9rem; line-height: 1.4; color: var(--text-main); }
+        
+        /* ESTILOS PARA LA SECCIÓN DE MARCADORES EXACTOS */
+        .marcardores-seccion { margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 15px; }
+        .marcador-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .marcador-badge { background: var(--primary); color: white; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 0.9rem; min-width: 48px; text-align: center; }
+
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -86,15 +92,21 @@
                 <div class="votos-title" id="titulo-gana-a">Votan Gana Local:</div>
                 <div class="votos-lista" id="lista-gana-a">Cargando participantes...</div>
             </div>
-            <!-- SECCIÓN AJUSTADA: De Empate a Penaltis -->
+            <!-- SECCIÓN RESTAURADA: Votan Empate -->
             <div class="votos-col col-empate">
-                <div class="votos-title">Votan Penaltis:</div>
+                <div class="votos-title">Votan Empate:</div>
                 <div class="votos-lista" id="lista-empate">Cargando participantes...</div>
             </div>
             <div class="votos-col col-b">
                 <div class="votos-title" id="titulo-gana-b">Votan Gana Visitante:</div>
                 <div class="votos-lista" id="lista-gana-b">Cargando participantes...</div>
             </div>
+        </div>
+
+        <!-- SECCIÓN DE MARCADORES EXACTOS EN ¿QUIÉN VA CON QUIÉN? -->
+        <div class="marcardores-seccion">
+            <h4 style="font-size: 0.9rem; color: var(--accent); margin-bottom: 10px;">🎯 Pronósticos de Marcador Exacto:</h4>
+            <div id="contenedorMarcadores">Cargando marcadores...</div>
         </div>
     </div>
 </div>
@@ -129,7 +141,7 @@
         }
     }
 
-    // FUNCIÓN DE RANKING REFORMADA: Podio completo (👑, 🥈, 🥉) y números limpios desde el 4
+    // RANKING CON PODIO (👑, 🥈, 🥉) Y NÚMEROS LIMPIOS DESDE EL PUESTO 4
     function renderizarRanking(ranking) {
         const contenedor = document.getElementById('listaRanking');
         contenedor.innerHTML = '';
@@ -154,7 +166,7 @@
                 contenidoPosicion = '🥉'; 
                 claseExtra = 'pos-crown';
             } else {
-                contenidoPosicion = index + 1; // Número exacto sin numeral (#) para el resto
+                contenidoPosicion = index + 1; 
             }
 
             item.innerHTML = `
@@ -205,7 +217,8 @@
             let textoResultado = p.resultado;
             if(p.resultado.toUpperCase().includes("GANA A") || p.resultado.toUpperCase() === "LOCAL") { claseBadge = 'gana-a'; textoResultado = '✓ Ganó Local'; }
             else if(p.resultado.toUpperCase().includes("GANA B") || p.resultado.toUpperCase() === "VISITANTE") { claseBadge = 'gana-b'; textoResultado = '✓ Ganó Visitante'; }
-            else if(p.resultado.toUpperCase().includes("EMPATE") || p.resultado.toUpperCase().includes("PENAL")) { claseBadge = 'empate'; textoResultado = '✓ Penaltis'; }
+            else if(p.resultado.toUpperCase().includes("EMPATE") || p.resultado.toUpperCase().includes("PENAL")) { claseBadge = 'empate'; textoResultado = '✓ Empate'; }
+            else if(p.resultado !== "Por jugar") { claseBadge = 'empate'; textoResultado = `Resultado: ${p.resultado}`; }
 
             tarjeta.innerHTML = `
                 <div style="font-weight: bold; font-size: 1.05rem;">${p.partido}</div>
@@ -250,10 +263,14 @@
         document.getElementById('titulo-gana-b').innerText = `Votan Gana ${nombreVisitante}:`;
 
         let ganaA = [];
-        let penaltis = [];
+        let empate = [];
         let ganaB = [];
+        
+        // Agrupar marcadores exactos {"2-1": ["Diego", "Alex"], "1-1": ["Carlos"]}
+        let mapaMarcadores = {};
 
         datosGlobales.predicciones.forEach(p => {
+            // 1. Clasificación general de ganadores
             let voto = p.elecciones[idPartidoSeleccionado];
             if (voto) {
                 let votoLimpio = voto.toUpperCase().trim();
@@ -263,16 +280,47 @@
                 if (votoLimpio.includes("GANA A") || votoLimpio === "LOCAL" || (eqALimpio && votoLimpio.includes(eqALimpio))) {
                     ganaA.push(p.nombre);
                 } else if (votoLimpio.includes("EMPATE") || votoLimpio.includes("PENAL")) {
-                    penaltis.push(p.nombre); 
+                    empate.push(p.nombre);
                 } else if (votoLimpio.includes("GANA B") || votoLimpio === "VISITANTE" || (eqBLimpio && votoLimpio.includes(eqBLimpio))) {
                     ganaB.push(p.nombre);
                 }
             }
+
+            // 2. Clasificación de marcadores exactos (Columna ID_MARCADOR)
+            let idMarcador = idPartidoSeleccionado + "_MARCADOR";
+            let marcadorVotado = p.elecciones[idMarcador];
+            if (marcadorVotado && marcadorVotado !== "Sin voto") {
+                let mLimpio = marcadorVotado.trim();
+                if (!mapaMarcadores[mLimpio]) {
+                    mapaMarcadores[mLimpio] = [];
+                }
+                mapaMarcadores[mLimpio].push(p.nombre);
+            }
         });
 
+        // Imprimir ganadores
         document.getElementById('lista-gana-a').innerHTML = ganaA.length > 0 ? ganaA.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
-        document.getElementById('lista-empate').innerHTML = penaltis.length > 0 ? penaltis.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
+        document.getElementById('lista-empate').innerHTML = empate.length > 0 ? empate.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
         document.getElementById('lista-gana-b').innerHTML = ganaB.length > 0 ? ganaB.join(', ') : "<span style='color:var(--text-muted)'>Nadie apostó por este resultado</span>";      
+
+        // Imprimir tarjetas de marcadores exactos
+        const contenedorM = document.getElementById('contenedorMarcadores');
+        contenedorM.innerHTML = '';
+        
+        const llavesMarcadores = Object.keys(mapaMarcadores);
+        if (llavesMarcadores.length === 0) {
+            contenedorM.innerHTML = "<span style='color:var(--text-muted)'>No hay marcadores registrados para este partido.</span>";
+        } else {
+            llavesMarcadores.forEach(m => {
+                const filaM = document.createElement('div');
+                filaM.className = 'marcador-card';
+                filaM.innerHTML = `
+                    <div class="marcador-badge">${m}</div>
+                    <div style="font-size:0.9rem;">${mapaMarcadores[m].join(', ')}</div>
+                `;
+                contenedorM.appendChild(filaM);
+            });
+        }
     }
 
     function cambiarPestaña(pestaña) {  
